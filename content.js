@@ -194,8 +194,10 @@ function showBlockedPage(channelId) {
       </div>
       <script>
         (function() {
-          const channelId = ${JSON.stringify(channelId)};
-          document.getElementById('channelDisplay').textContent = 'Channel: ' + (channelId || 'Unknown');
+          // Safely pass channelId through data attribute or direct assignment
+          const channelId = ${JSON.stringify(channelId)}; // JSON.stringify ensures proper escaping
+          const displayElement = document.getElementById('channelDisplay');
+          displayElement.textContent = 'Channel: ' + (channelId || 'Unknown');
           
           document.getElementById('addButton').addEventListener('click', function() {
             const button = this;

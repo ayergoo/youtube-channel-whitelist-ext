@@ -32,20 +32,24 @@ function renderChannelList() {
     return;
   }
   
-  listElement.innerHTML = whitelist.map((channelId) => `
-    <div class="channel-item">
-      <span class="channel-id">${channelId}</span>
-      <button class="remove-button" data-channel="${channelId}">Remove</button>
-    </div>
-  `).join('');
+  listElement.innerHTML = '';
   
-  // Add event listeners to remove buttons
-  const removeButtons = listElement.querySelectorAll('.remove-button');
-  removeButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const channelId = button.dataset.channel;
-      removeChannel(channelId);
-    });
+  whitelist.forEach((channelId) => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'channel-item';
+    
+    const channelSpan = document.createElement('span');
+    channelSpan.className = 'channel-id';
+    channelSpan.textContent = channelId; // Safe: uses textContent instead of innerHTML
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-button';
+    removeBtn.textContent = 'Remove';
+    removeBtn.onclick = () => removeChannel(channelId);
+    
+    itemDiv.appendChild(channelSpan);
+    itemDiv.appendChild(removeBtn);
+    listElement.appendChild(itemDiv);
   });
 }
 
@@ -60,10 +64,12 @@ function addChannel(channelId) {
   }
   
   // Basic validation: either starts with @ or is a valid YouTube channel ID
-  // YouTube channel IDs are 24 characters, alphanumeric with hyphens and underscores
-  if (!channelId.startsWith('@') && !/^[a-zA-Z0-9_-]{1,}$/.test(channelId)) {
-    showFeedback('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username', 'error');
-    return;
+  // YouTube channel IDs are typically 24 characters starting with UC
+  if (!channelId.startsWith('@')) {
+    if (!/^[a-zA-Z0-9_-]{10,}$/.test(channelId)) {
+      showFeedback('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username', 'error');
+      return;
+    }
   }
   
   if (whitelist.includes(channelId)) {
