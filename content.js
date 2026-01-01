@@ -310,8 +310,8 @@ chrome.runtime.sendMessage({ action: 'getWhitelist' }, (response) => {
       });
     }
     
-    // Fallback periodic check for edge cases (less frequent to reduce performance impact)
-    setInterval(hideNonWhitelistedVideos, 10000);
+    // Fallback periodic check for edge cases (infrequent - observer handles most cases)
+    setInterval(hideNonWhitelistedVideos, 30000); // 30 seconds
   }
 });
 

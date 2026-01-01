@@ -1,5 +1,8 @@
 // Popup script for managing whitelist
 
+// Constants
+const MIN_CHANNEL_ID_LENGTH = 10;
+
 let whitelist = [];
 let enabled = true;
 
@@ -23,12 +26,22 @@ function renderChannelList() {
   countElement.textContent = whitelist.length;
   
   if (whitelist.length === 0) {
-    listElement.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📝</div>
-        <p class="empty-state-text">No channels whitelisted yet.<br>Add a channel to get started!</p>
-      </div>
-    `;
+    // Create empty state using DOM manipulation for security
+    listElement.innerHTML = '';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'empty-state-icon';
+    iconDiv.textContent = '📝';
+    
+    const textP = document.createElement('p');
+    textP.className = 'empty-state-text';
+    textP.innerHTML = 'No channels whitelisted yet.<br>Add a channel to get started!';
+    
+    emptyDiv.appendChild(iconDiv);
+    emptyDiv.appendChild(textP);
+    listElement.appendChild(emptyDiv);
     return;
   }
   
@@ -64,9 +77,9 @@ function addChannel(channelId) {
   }
   
   // Basic validation: either starts with @ or is a valid YouTube channel ID
-  // YouTube channel IDs are typically 24 characters starting with UC
+  // YouTube channel IDs are typically 24 characters starting with UC, but we allow min 10
   if (!channelId.startsWith('@')) {
-    if (!/^[a-zA-Z0-9_-]{10,}$/.test(channelId)) {
+    if (!/^[a-zA-Z0-9_-]{10,}$/.test(channelId) || channelId.length < MIN_CHANNEL_ID_LENGTH) {
       showFeedback('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username', 'error');
       return;
     }
