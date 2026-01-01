@@ -55,18 +55,18 @@ function addChannel(channelId) {
   channelId = channelId.trim();
   
   if (!channelId) {
-    alert('Please enter a channel ID or @username');
+    showFeedback('Please enter a channel ID or @username', 'error');
     return;
   }
   
   // Basic validation: either starts with @ or is alphanumeric with dashes/underscores
   if (!channelId.startsWith('@') && !/^[a-zA-Z0-9_-]+$/.test(channelId)) {
-    alert('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username');
+    showFeedback('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username', 'error');
     return;
   }
   
   if (whitelist.includes(channelId)) {
-    alert('This channel is already in your whitelist');
+    showFeedback('This channel is already in your whitelist', 'info');
     return;
   }
   
@@ -74,7 +74,33 @@ function addChannel(channelId) {
   chrome.storage.sync.set({ whitelist }, () => {
     renderChannelList();
     document.getElementById('channelInput').value = '';
+    showFeedback('Channel added successfully!', 'success');
   });
+}
+
+// Show feedback message
+function showFeedback(message, type = 'info') {
+  const input = document.getElementById('channelInput');
+  const originalPlaceholder = input.placeholder;
+  const originalBorder = input.style.border;
+  
+  // Update input styling based on type
+  if (type === 'error') {
+    input.style.border = '2px solid #dc3545';
+    input.placeholder = '❌ ' + message;
+  } else if (type === 'success') {
+    input.style.border = '2px solid #28a745';
+    input.placeholder = '✓ ' + message;
+  } else {
+    input.style.border = '2px solid #ffc107';
+    input.placeholder = 'ℹ️ ' + message;
+  }
+  
+  // Reset after 3 seconds
+  setTimeout(() => {
+    input.style.border = originalBorder;
+    input.placeholder = originalPlaceholder;
+  }, 3000);
 }
 
 // Remove a channel from the whitelist
