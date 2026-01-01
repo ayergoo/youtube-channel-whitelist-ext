@@ -52,8 +52,20 @@ function extractChannelIdFromPage() {
   // Try ytInitialData for channel ID
   try {
     if (window.ytInitialData) {
-      const videoOwnerRenderer = JSON.stringify(window.ytInitialData).match(/"videoOwnerRenderer".*?"browseEndpoint".*?"browseId":"([\w-]+)"/);
-      if (videoOwnerRenderer) return videoOwnerRenderer[1];
+      // Navigate the object structure directly instead of stringifying
+      const data = window.ytInitialData;
+      if (data.contents && data.contents.twoColumnWatchNextResults) {
+        const results = data.contents.twoColumnWatchNextResults.results.results.contents;
+        for (const content of results) {
+          if (content.videoSecondaryInfoRenderer) {
+            const owner = content.videoSecondaryInfoRenderer.owner;
+            if (owner && owner.videoOwnerRenderer && owner.videoOwnerRenderer.navigationEndpoint) {
+              const browseId = owner.videoOwnerRenderer.navigationEndpoint.browseEndpoint.browseId;
+              if (browseId) return browseId;
+            }
+          }
+        }
+      }
     }
   } catch (e) {
     console.log('Error extracting channel from ytInitialData:', e);
@@ -72,6 +84,18 @@ function isChannelWhitelisted(channelId) {
 function showBlockedPage(channelId) {
   if (blockedPageShown) return;
   blockedPageShown = true;
+  
+  // Escape channelId to prevent XSS
+  const escapedChannelId = channelId ? channelId.replace(/[<>"'&]/g, (char) => {
+    const escapeMap = {
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+      '&': '&amp;'
+    };
+    return escapeMap[char];
+  }) : 'Unknown';
   
   const blockedHTML = `
     <!DOCTYPE html>
@@ -162,34 +186,38 @@ function showBlockedPage(channelId) {
         <div class="icon">🚫</div>
         <h1>Channel Not Whitelisted</h1>
         <p>This YouTube channel is not on your whitelist.</p>
-        <div class="channel-id">Channel: ${channelId || 'Unknown'}</div>
+        <div class="channel-id" id="channelDisplay"></div>
         <div class="buttons">
           <button class="btn-primary" onclick="window.history.back()">Go Back</button>
-          <button class="btn-secondary" onclick="addToWhitelist()">Add to Whitelist</button>
+          <button class="btn-secondary" id="addButton">Add to Whitelist</button>
         </div>
       </div>
       <script>
-        function addToWhitelist() {
-          const channelId = '${channelId}';
-          const button = event.target;
-          button.textContent = 'Adding...';
-          button.disabled = true;
+        (function() {
+          const channelId = ${JSON.stringify(channelId)};
+          document.getElementById('channelDisplay').textContent = 'Channel: ' + (channelId || 'Unknown');
           
-          chrome.runtime.sendMessage({
-            action: 'addToWhitelist',
-            channelId: channelId
-          }, (response) => {
-            if (response && response.success) {
-              button.textContent = 'Added! Reloading...';
-              setTimeout(() => {
-                window.location.reload();
-              }, 500);
-            } else {
-              button.textContent = 'Add to Whitelist';
-              button.disabled = false;
-            }
+          document.getElementById('addButton').addEventListener('click', function() {
+            const button = this;
+            button.textContent = 'Adding...';
+            button.disabled = true;
+            
+            chrome.runtime.sendMessage({
+              action: 'addToWhitelist',
+              channelId: channelId
+            }, function(response) {
+              if (response && response.success) {
+                button.textContent = 'Added! Reloading...';
+                setTimeout(function() {
+                  window.location.reload();
+                }, 500);
+              } else {
+                button.textContent = 'Add to Whitelist';
+                button.disabled = false;
+              }
+            });
           });
-        }
+        })();
       </script>
     </body>
     </html>
@@ -280,8 +308,8 @@ chrome.runtime.sendMessage({ action: 'getWhitelist' }, (response) => {
       });
     }
     
-    // Fallback periodic check for edge cases (less frequent)
-    setInterval(hideNonWhitelistedVideos, 5000);
+    // Fallback periodic check for edge cases (less frequent to reduce performance impact)
+    setInterval(hideNonWhitelistedVideos, 10000);
   }
 });
 

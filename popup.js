@@ -59,8 +59,9 @@ function addChannel(channelId) {
     return;
   }
   
-  // Basic validation: either starts with @ or is alphanumeric with dashes/underscores
-  if (!channelId.startsWith('@') && !/^[a-zA-Z0-9_-]+$/.test(channelId)) {
+  // Basic validation: either starts with @ or is a valid YouTube channel ID
+  // YouTube channel IDs are 24 characters, alphanumeric with hyphens and underscores
+  if (!channelId.startsWith('@') && !/^[a-zA-Z0-9_-]{1,}$/.test(channelId)) {
     showFeedback('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username', 'error');
     return;
   }
