@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Channel Whitelist</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📺 YouTube Whitelist</h1>
+      <div class="toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="enableToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">Extension Enabled</span>
+      </div>
+    </div>
+    
+    <div class="add-section">
+      <input type="text" id="channelInput" placeholder="Enter channel ID or @username" />
+      <button id="addButton">Add Channel</button>
+    </div>
+    
+    <div class="list-section">
+      <h2>Whitelisted Channels (<span id="count">0</span>)</h2>
+      <div id="channelList" class="channel-list"></div>
+    </div>
+    
+    <div class="help-section">
+      <p class="help-text">💡 Tip: You can add channels by entering their ID (e.g., "UCxxxxxxx") or handle (e.g., "@username")</p>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
