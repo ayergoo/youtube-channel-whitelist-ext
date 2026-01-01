@@ -85,7 +85,7 @@ function addChannel(channelId) {
   // Basic validation: either starts with @ or is a valid YouTube channel ID
   // YouTube channel IDs are typically 24 characters starting with UC, but we allow min 10
   if (!channelId.startsWith('@')) {
-    if (!/^[a-zA-Z0-9_-]{10,}$/.test(channelId) || channelId.length < MIN_CHANNEL_ID_LENGTH) {
+    if (!/^[a-zA-Z0-9_-]{10,}$/.test(channelId)) {
       showFeedback('Invalid channel ID format. Use either a channel ID (e.g., UCxxxxxxx) or @username', 'error');
       return;
     }

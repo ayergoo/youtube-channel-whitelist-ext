@@ -214,6 +214,8 @@ function showBlockedPage(channelId) {
     </html>
   `;
   
+  // Intentionally replace entire page with blocked message
+  // channelId is safely escaped via JSON.stringify above
   document.open();
   document.write(blockedHTML);
   document.close();
