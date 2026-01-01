@@ -85,18 +85,7 @@ function showBlockedPage(channelId) {
   if (blockedPageShown) return;
   blockedPageShown = true;
   
-  // Escape channelId to prevent XSS
-  const escapedChannelId = channelId ? channelId.replace(/[<>"'&]/g, (char) => {
-    const escapeMap = {
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-      '&': '&amp;'
-    };
-    return escapeMap[char];
-  }) : 'Unknown';
-  
+  // JSON.stringify handles escaping, so no need for manual escaping
   const blockedHTML = `
     <!DOCTYPE html>
     <html>

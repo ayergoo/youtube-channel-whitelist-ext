@@ -27,7 +27,7 @@ function renderChannelList() {
   
   if (whitelist.length === 0) {
     // Create empty state using DOM manipulation for security
-    listElement.innerHTML = '';
+    listElement.replaceChildren(); // Clear existing content
     const emptyDiv = document.createElement('div');
     emptyDiv.className = 'empty-state';
     
@@ -51,7 +51,7 @@ function renderChannelList() {
     return;
   }
   
-  listElement.innerHTML = '';
+  listElement.replaceChildren(); // Clear existing content
   
   whitelist.forEach((channelId) => {
     const itemDiv = document.createElement('div');
