@@ -171,13 +171,22 @@ function showBlockedPage(channelId) {
       <script>
         function addToWhitelist() {
           const channelId = '${channelId}';
+          const button = event.target;
+          button.textContent = 'Adding...';
+          button.disabled = true;
+          
           chrome.runtime.sendMessage({
             action: 'addToWhitelist',
             channelId: channelId
           }, (response) => {
             if (response && response.success) {
-              alert('Channel added to whitelist! Reloading page...');
-              window.location.reload();
+              button.textContent = 'Added! Reloading...';
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
+            } else {
+              button.textContent = 'Add to Whitelist';
+              button.disabled = false;
             }
           });
         }
@@ -257,8 +266,22 @@ chrome.runtime.sendMessage({ action: 'getWhitelist' }, (response) => {
     // Initial check
     checkAndBlock();
     
-    // Check periodically for dynamically loaded content
-    setInterval(hideNonWhitelistedVideos, 2000);
+    // Use MutationObserver for efficient DOM monitoring
+    const observer = new MutationObserver(() => {
+      hideNonWhitelistedVideos();
+    });
+    
+    // Observe the main content area for changes
+    const targetNode = document.querySelector('ytd-app');
+    if (targetNode) {
+      observer.observe(targetNode, {
+        childList: true,
+        subtree: true
+      });
+    }
+    
+    // Fallback periodic check for edge cases (less frequent)
+    setInterval(hideNonWhitelistedVideos, 5000);
   }
 });
 
@@ -288,10 +311,20 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync') {
     if (changes.whitelist) {
       whitelist = changes.whitelist.newValue || [];
-      location.reload();
+      // Re-check without reloading if we're on a safe page
+      if (!window.location.href.includes('/watch') && 
+          !window.location.href.includes('/channel/') && 
+          !window.location.href.includes('/@')) {
+        currentChannelId = null;
+        checkAndBlock();
+      } else {
+        // Only reload if on a potentially blocked page
+        location.reload();
+      }
     }
     if (changes.enabled) {
       enabled = changes.enabled.newValue !== false;
+      // Reload for enable/disable to ensure clean state
       location.reload();
     }
   }
