@@ -37,7 +37,13 @@ function renderChannelList() {
     
     const textP = document.createElement('p');
     textP.className = 'empty-state-text';
-    textP.innerHTML = 'No channels whitelisted yet.<br>Add a channel to get started!';
+    textP.textContent = 'No channels whitelisted yet.';
+    
+    const br = document.createElement('br');
+    textP.appendChild(br);
+    
+    const text2 = document.createTextNode('Add a channel to get started!');
+    textP.appendChild(text2);
     
     emptyDiv.appendChild(iconDiv);
     emptyDiv.appendChild(textP);
