@@ -225,6 +225,18 @@ function showBlockedPage(channelId) {
 function hideNonWhitelistedVideos() {
   if (!enabled) return;
   
+  // Hide iron-selector elements (navigation/selection UI)
+  const ironSelectors = document.querySelectorAll('iron-selector');
+  ironSelectors.forEach((element) => {
+    element.style.display = 'none';
+  });
+  
+  // Hide YouTube Shorts sections
+  const shortsElements = document.querySelectorAll('ytd-reel-shelf-renderer, ytd-shorts, [is-shorts]');
+  shortsElements.forEach((element) => {
+    element.style.display = 'none';
+  });
+  
   // Find all video elements on the page
   const videoElements = document.querySelectorAll('ytd-video-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-rich-item-renderer');
   
@@ -235,7 +247,12 @@ function hideNonWhitelistedVideos() {
     
     // Try to find channel link or ID in the video element
     const channelLink = element.querySelector('a[href*="/channel/"], a[href*="/@"]');
-    
+
+    if (channelLink == null) {
+      element.style.display = 'none';
+      return;
+    }
+
     if (channelLink) {
       const href = channelLink.href;
       let channelId = null;
@@ -287,9 +304,23 @@ chrome.runtime.sendMessage({ action: 'getWhitelist' }, (response) => {
     // Initial check
     checkAndBlock();
     
-    // Use MutationObserver for efficient DOM monitoring
+    // Debounce timer for MutationObserver
+    let debounceTimer = null;
+    
+    // Use MutationObserver for efficient DOM monitoring with debouncing
     const observer = new MutationObserver(() => {
+      // Clear existing timer
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      
+      // Hide immediately on mutation (no delay to prevent flicker)
       hideNonWhitelistedVideos();
+      
+      // Also schedule a follow-up check after a short delay to catch any stragglers
+      debounceTimer = setTimeout(() => {
+        hideNonWhitelistedVideos();
+      }, 100);
     });
     
     // Observe the main content area for changes
@@ -302,7 +333,7 @@ chrome.runtime.sendMessage({ action: 'getWhitelist' }, (response) => {
     }
     
     // Fallback periodic check for edge cases (infrequent - observer handles most cases)
-    setInterval(hideNonWhitelistedVideos, 30000); // 30 seconds
+    setInterval(hideNonWhitelistedVideos, 3000); // 30 seconds
   }
 });
 
