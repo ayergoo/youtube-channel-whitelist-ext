@@ -235,7 +235,12 @@ function hideNonWhitelistedVideos() {
     
     // Try to find channel link or ID in the video element
     const channelLink = element.querySelector('a[href*="/channel/"], a[href*="/@"]');
-    
+
+    if (channelLink == null) {
+      element.style.display = 'none';
+      return;
+    }
+
     if (channelLink) {
       const href = channelLink.href;
       let channelId = null;
@@ -302,7 +307,7 @@ chrome.runtime.sendMessage({ action: 'getWhitelist' }, (response) => {
     }
     
     // Fallback periodic check for edge cases (infrequent - observer handles most cases)
-    setInterval(hideNonWhitelistedVideos, 30000); // 30 seconds
+    setInterval(hideNonWhitelistedVideos, 3000); // 30 seconds
   }
 });
 
